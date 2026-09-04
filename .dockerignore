@@ -1,0 +1,58 @@
+# Keep the build context small and the image clean.
+
+# Secrets — the container gets its key from the host's secret store, never a layer.
+.env
+*.env
+
+# Git and editor noise
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Python build artefacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local virtualenvs — the image installs its own, and these are Windows-built anyway
+.venv/
+.venv311/
+venv/
+env/
+
+# The static front end is served by the static host, not this container.
+# (templates/ and static/ are deliberately NOT excluded: FastAPI still serves
+# GET / and /static directly, so hitting the Space URL alone gives a working app.)
+
+# Deploy tooling that only the static host runs
+deploy/vercel-build.sh
+vercel.json
+.vercelignore
+public/
+
+# Legacy one-off codegen — stale, does not compile, must never run. See README.
+build_index.py
+build_index_safe.py
+original_index.html
+add_styles.py
+update_styles.py
+apply_fixes_3.py
+apply_json_fixes.py
+fix_charts.py
+fix_legend.py
+fix_styles_2.py
+fix_try_catch.py
+fix_visuals.py
+restore_js.py
+
+# Local model downloads, if any ever landed in-tree
+models/
+*.bin
+*.pt
+*.safetensors
+
+# Knowledge graph — a dev tool, not a runtime dependency
+graphify-out/

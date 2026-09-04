@@ -1,0 +1,114 @@
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.13.0
+certifi==2026.2.25
+charset-normalizer==3.4.7
+click==8.3.2
+cloudpickle==3.1.2
+colorama==0.4.6
+contourpy==1.3.2
+cycler==0.12.1
+exceptiongroup==1.3.1
+fastapi==0.136.0
+filelock==3.29.0
+fonttools==4.62.1
+fsspec==2026.3.0
+h11==0.16.0
+httptools==0.7.1
+huggingface_hub==0.36.2
+idna==3.11
+ImageIO==2.37.3
+Jinja2==3.1.6
+joblib==1.5.3
+kiwisolver==1.5.0
+lazy-loader==0.5
+lime==0.2.0.1
+llvmlite==0.47.0
+MarkupSafe==3.0.3
+matplotlib==3.10.8
+mpmath==1.3.0
+networkx==3.4.2
+numba==0.65.0
+numpy==2.2.6
+packaging==26.1
+pandas==2.3.3
+pillow==12.2.0
+pydantic==2.13.2
+pydantic_core==2.46.2
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+python-multipart==0.0.26
+pytz==2026.1.post1
+pytesseract==0.3.13
+PyYAML==6.0.3
+regex==2026.4.4
+requests==2.33.1
+safetensors==0.7.0
+scikit-image==0.25.2
+scikit-learn==1.7.2
+scipy==1.15.3
+sentencepiece==0.2.1
+shap==0.49.1
+six==1.17.0
+slicer==0.0.8
+starlette==1.0.0
+sympy==1.14.0
+threadpoolctl==3.6.0
+tifffile==2025.5.10
+tokenizers==0.19.1
+torch==2.11.0
+tqdm==4.67.3
+transformers==4.40.0
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+tzdata==2026.1
+urllib3==2.6.3
+uvicorn==0.44.0
+watchfiles==1.1.1
+websockets==16.0
+# The current Gemini SDK. `google-generativeai` was its predecessor and is end
+# of life — no fixes and no new models — so nothing should import it again.
+google-genai
+openai-whisper
+ffmpeg-python
+# Ships a static ffmpeg binary so Whisper works without a system-wide install.
+imageio-ffmpeg==0.6.0
+# Video frame extraction for keyframe attribution.
+opencv-python
+
+# ── Document tab (PDF / PPTX) ────────────────────────────────────────────
+# Renders PDF pages and reports per-word boxes, so a digital PDF needs no OCR
+# at all. Note the licence: AGPL-3.0. Fine for research and internal use; a
+# closed-source distribution would need pypdfium2 (BSD-3) instead, giving up the
+# word boxes.
+pymupdf==1.28.2
+# Reads each slide's text *and* its shape geometry, which is what lets a slide be
+# redrawn with Pillow instead of shelling out to LibreOffice.
+python-pptx==1.0.2
+
+# ── Handwriting recognition (both engines optional at runtime) ────────────
+# EasyOCR does double duty: it is the Fast reader (CRAFT detection plus
+# recognition in one pass), and its CRAFT detector also supplies the line
+# geometry that Accurate mode crops for TrOCR. Measured on a handwritten test
+# page, Tesseract's layout analysis found 4 of 6 lines and CRAFT found all 6, so
+# Accurate is noticeably better with EasyOCR installed than without — it still
+# runs either way, falling back to Tesseract geometry.
+# torchvision must be installed FIRST, pinned, and with --no-deps: a plain
+# `pip install easyocr` resolves its own torch and will replace the working
+# torch 2.11.0+cpu that Whisper depends on. 0.26 is the release paired with
+# torch 2.11 in the upstream support matrix.
+#   pip install --no-deps "torchvision==0.26.*"
+#   pip install --no-deps easyocr
+#   pip install shapely pyclipper "python-bidi<0.6"
+torchvision==0.26.0
+easyocr==1.7.2
+shapely==2.1.2
+pyclipper==1.4.0
+# 0.6 dropped the bidi.algorithm module that EasyOCR's older paths import.
+python-bidi<0.6
+# The Accurate reader is microsoft/trocr-small-handwritten, which needs no new
+# package — transformers 4.40.0 above already provides TrOCRProcessor and
+# VisionEncoderDecoderModel. Weights (~240 MB) download on first use and cache.
+# Line crops must be greyscale before they reach it; see _for_trocr().
+

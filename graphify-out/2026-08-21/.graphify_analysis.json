@@ -1,0 +1,328 @@
+{
+  "communities": {
+    "0": [
+      "explainer",
+      "explainer_analyze_frame_with_gemini",
+      "explainer_build_heatmap",
+      "explainer_clean_ocr_line",
+      "explainer_dedupe_lines",
+      "explainer_explain_audio",
+      "explainer_explain_image_gemini",
+      "explainer_explain_image_vqa",
+      "explainer_extract_audio_from_video",
+      "explainer_extract_frame_at_timestamp",
+      "explainer_extract_keywords",
+      "explainer_format_timestamp",
+      "explainer_get_nltk_stopwords",
+      "explainer_group_ocr_by_line",
+      "explainer_image_to_b64",
+      "explainer_load_whisper",
+      "explainer_preprocess_for_ocr",
+      "explainer_rationale_102",
+      "explainer_rationale_112",
+      "explainer_rationale_140",
+      "explainer_rationale_177",
+      "explainer_rationale_225",
+      "explainer_rationale_410",
+      "explainer_rationale_678",
+      "explainer_rationale_715",
+      "explainer_rationale_759",
+      "image"
+    ],
+    "1": [
+      "templates_script",
+      "templates_script_cleanfeaturetext",
+      "templates_script_colors",
+      "templates_script_display_stopwords",
+      "templates_script_jumptotime",
+      "templates_script_renderaudiodonutchart",
+      "templates_script_renderdonutchart",
+      "templates_script_renderlime",
+      "templates_script_rendersentences",
+      "templates_script_rendershap",
+      "templates_script_runimagevqa",
+      "templates_script_runqa",
+      "templates_script_runsummarize",
+      "templates_script_shoulddisplayfeature",
+      "templates_script_showtoast",
+      "templates_script_switchtab"
+    ],
+    "2": [
+      "test",
+      "test_cleanfeaturetext",
+      "test_colors",
+      "test_display_stopwords",
+      "test_jumptotime",
+      "test_renderaudiodonutchart",
+      "test_renderdonutchart",
+      "test_renderlime",
+      "test_rendersentences",
+      "test_rendershap",
+      "test_runimagevqa",
+      "test_runqa",
+      "test_runsummarize",
+      "test_shoulddisplayfeature",
+      "test_showtoast"
+    ],
+    "3": [
+      "basemodel",
+      "main",
+      "main_summarize",
+      "model_utils_summarize_text",
+      "schemas",
+      "schemas_qarequest",
+      "schemas_summarizerequest"
+    ],
+    "4": [
+      "explainer_get_lime_explanation",
+      "explainer_rationale_537",
+      "text_cleaning",
+      "text_cleaning_clean_attribution_feature",
+      "text_cleaning_clean_educational_text",
+      "text_cleaning_rationale_15",
+      "text_cleaning_rationale_30"
+    ],
+    "5": [
+      "get",
+      "main_health",
+      "main_index",
+      "main_no_cache",
+      "middleware",
+      "request"
+    ],
+    "6": [
+      "model_utils",
+      "model_utils_answer_question",
+      "model_utils_generate_answer",
+      "model_utils_get_qa_model",
+      "model_utils_get_summarizer",
+      "model_utils_rationale_113"
+    ],
+    "7": [
+      "explainer_get_shap_explanation",
+      "explainer_is_display_feature",
+      "explainer_merge_shap_subwords",
+      "explainer_rationale_569",
+      "explainer_rationale_620"
+    ],
+    "8": [
+      "main_explain_audio_endpoint",
+      "main_explain_image_vqa_endpoint",
+      "post",
+      "uploadfile"
+    ],
+    "9": [
+      "explainer_get_clf",
+      "explainer_predict_proba",
+      "explainer_rationale_517"
+    ],
+    "10": [
+      "explainer_get_sentence_attribution",
+      "explainer_rationale_637",
+      "main_qa"
+    ],
+    "11": [
+      "apply_fixes_3",
+      "apply_fixes_3_add_try_catch"
+    ],
+    "12": [
+      "fix_try_catch",
+      "fix_try_catch_add_try_catch"
+    ],
+    "13": [
+      "add_styles"
+    ],
+    "14": [
+      "apply_json_fixes"
+    ],
+    "15": [
+      "build_index"
+    ],
+    "16": [
+      "build_index_safe"
+    ],
+    "17": [
+      "fix_charts"
+    ],
+    "18": [
+      "fix_legend"
+    ],
+    "19": [
+      "fix_styles_2"
+    ],
+    "20": [
+      "fix_visuals"
+    ],
+    "21": [
+      "init"
+    ],
+    "22": [
+      "restore_js"
+    ],
+    "23": [
+      "update_styles"
+    ]
+  },
+  "cohesion": {
+    "0": 0.1452991452991453,
+    "1": 0.25,
+    "2": 0.2761904761904762,
+    "3": 0.5238095238095238,
+    "4": 0.38095238095238093,
+    "5": 0.3333333333333333,
+    "6": 0.5333333333333333,
+    "7": 0.4,
+    "8": 0.6666666666666666,
+    "9": 0.6666666666666666,
+    "10": 0.6666666666666666,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0
+  },
+  "gods": [
+    {
+      "id": "text_cleaning_clean_educational_text",
+      "label": "clean_educational_text()",
+      "degree": 14
+    },
+    {
+      "id": "explainer_explain_image_gemini",
+      "label": "explain_image_gemini()",
+      "degree": 12
+    },
+    {
+      "id": "explainer_explain_image_vqa",
+      "label": "explain_image_vqa()",
+      "degree": 12
+    },
+    {
+      "id": "explainer_explain_audio",
+      "label": "explain_audio()",
+      "degree": 9
+    },
+    {
+      "id": "explainer_get_lime_explanation",
+      "label": "get_lime_explanation()",
+      "degree": 9
+    },
+    {
+      "id": "explainer_get_shap_explanation",
+      "label": "get_shap_explanation()",
+      "degree": 8
+    },
+    {
+      "id": "main_qa",
+      "label": "qa()",
+      "degree": 8
+    },
+    {
+      "id": "main_summarize",
+      "label": "summarize()",
+      "degree": 8
+    },
+    {
+      "id": "model_utils_answer_question",
+      "label": "answer_question()",
+      "degree": 8
+    },
+    {
+      "id": "explainer_extract_keywords",
+      "label": "_extract_keywords()",
+      "degree": 6
+    }
+  ],
+  "surprises": [
+    {
+      "source": "qa()",
+      "target": "QARequest",
+      "source_files": [
+        "main.py",
+        "schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "summarize()",
+      "target": "SummarizeRequest",
+      "source_files": [
+        "main.py",
+        "schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "explain_audio_endpoint()",
+      "target": "explain_audio()",
+      "source_files": [
+        "main.py",
+        "explainer.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "explain_image_vqa_endpoint()",
+      "target": "explain_image_gemini()",
+      "source_files": [
+        "main.py",
+        "explainer.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "explain_image_vqa()",
+      "target": "answer_question()",
+      "source_files": [
+        "explainer.py",
+        "model_utils.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `explain_image_gemini()` connect `explainer.py` to `explain_audio_endpoint`, `main.py`?",
+      "why": "High betweenness centrality (0.028) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `explain_image_vqa()` connect `explainer.py` to `main.py`, `model_utils.py`?",
+      "why": "High betweenness centrality (0.024) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `clean_educational_text()` connect `clean_educational_text` to `explainer.py`, `main.py`, `model_utils.py`, `get_shap_explanation`, `predict_proba`, `qa`?",
+      "why": "High betweenness centrality (0.022) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `COLORS`, `DISPLAY_STOPWORDS`, `COLORS` to the rest of the system?",
+      "why": "4 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `explainer.py` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.1452991452991453 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
