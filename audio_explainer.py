@@ -26,9 +26,7 @@ try:
         describe_service_error,
         gemini_model,
         not_answerable_rules,
-        question_is_off_topic,
         reply_is_unsupported,
-        unsupported_reply,
     )
 except ImportError:
     from utils import (
@@ -38,9 +36,7 @@ except ImportError:
         describe_service_error,
         gemini_model,
         not_answerable_rules,
-        question_is_off_topic,
         reply_is_unsupported,
-        unsupported_reply,
     )
 
 # Whisper decodes audio by shelling out to `ffmpeg` by name, so the binary must
@@ -583,25 +579,9 @@ def explain_audio(
                 cache_key, full_transcript, segments, word_timestamps
             )
 
-        # The recording never mentions what the question is about, so the answer
-        # is already known and no model is needed to write it. Settled here rather
-        # than after the call for two reasons: this path is the only one with no
-        # local answerer, so when the hosted allowance is spent asking anyway
-        # turns an answerable "that is not in this recording" into an error; and
-        # the timestamps and keyframes below would be pinned to phrases nothing
-        # cited.
-        if question_is_off_topic(question, full_transcript):
-            stage("Answering question")
-            print("[explainer] Question is off-topic for this transcript")
-            stage("Finishing up")
-            return _audio_declined(
-                unsupported_reply("transcript", question, full_transcript),
-                full_transcript,
-                segments,
-            )
-
         prompt = (
-            "You are analyzing an educational audio transcript.\n"
+            "You are answering a question using the transcript of an "
+            "educational recording.\n"
             "Respond with ONLY a JSON object. "
             "No preamble, no explanation, no markdown.\n"
             "Start your response with { and end with }.\n\n"
@@ -624,6 +604,9 @@ def explain_audio(
             "- contribution values must add up to 1.0\n"
             "- between 2 and 5 sources when the transcript can answer\n"
             "- never add information not in the transcript\n"
+            "- judge meaning, not exact word overlap: understand paraphrases "
+            "and use the transcript context to resolve references such as "
+            "'this process' when the recording makes the reference clear\n"
             f"{not_answerable_rules('transcript')}\n\n"
             f"TRANSCRIPT:\n{full_transcript}\n\n"
             f"QUESTION: {question}"

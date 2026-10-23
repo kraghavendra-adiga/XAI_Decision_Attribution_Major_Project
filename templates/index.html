@@ -393,6 +393,22 @@
       outline: none;
     }
 
+    #finetuning-link {
+      display: block;
+      margin-top: 8px;
+      padding: 8px 4px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    #finetuning-link:hover,
+    #finetuning-link:focus-visible {
+      color: var(--ink);
+      outline: none;
+    }
+
     /* "Why this project matters" dialog, opened from the sidebar's ⓘ */
     #about-backdrop {
       position: fixed;
@@ -868,7 +884,131 @@
       line-height: 1.5;
     }
 
+    .attribution-picker {
+      margin: 20px 0 8px;
+      padding: 18px;
+      border: 1px solid var(--rule);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fffdf8, #f8f7f1);
+    }
+
+    .attribution-picker-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .attribution-picker-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .attribution-picker-link {
+      color: var(--ink);
+      font-size: 12px;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+      white-space: nowrap;
+    }
+
+    .attribution-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .attribution-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--rule);
+      border-radius: 11px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+
+    .attribution-option:hover:not(.is-disabled) {
+      border-color: var(--ink-faint);
+      transform: translateY(-1px);
+    }
+
+    .attribution-option.is-selected {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 1px var(--ink);
+      background: #fffef8;
+    }
+
+    .attribution-option.is-disabled {
+      cursor: not-allowed;
+      opacity: 0.56;
+    }
+
+    .attribution-option input {
+      width: 16px;
+      height: 16px;
+      margin: 2px 0 0;
+      accent-color: var(--ink);
+      flex: 0 0 auto;
+    }
+
+    .attribution-option-copy {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .attribution-option-name {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .attribution-option-description {
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .attribution-option-badge {
+      margin-left: auto;
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: var(--marker-yellow-wash);
+      color: var(--ink);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .attribution-hint,
+    .attribution-mode-label {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .attribution-mode-label {
+      margin: 0 0 12px;
+    }
+
     @media (max-width: 720px) {
+      .attribution-options {
+        grid-template-columns: 1fr;
+      }
+
+      .attribution-picker {
+        padding: 14px;
+      }
+
       .ask-row {
         flex-direction: column;
       }
@@ -2614,6 +2754,7 @@
         <button class="nav-item" data-tab="video">⏵ Video</button>
       </nav>
       <div id="sidebar-bottom">
+        <a id="finetuning-link" href="/finetuning">Model benchmark</a>
         <button id="sidebar-about" type="button" aria-label="About this project" title="About this project">ⓘ</button>
       </div>
     </aside>
@@ -2662,7 +2803,7 @@
                   class="method-name">SHAP</span> token values</div>
               <div class="method"><span class="method-swatch"
                   style="background: var(--marker-cyan-wash)"></span><span
-                  class="method-name">TF&#8209;IDF</span> sentence rank</div>
+                  class="method-name">Evidence model</span> sentence rank</div>
               <div class="method"><span class="method-swatch"
                   style="background: var(--marker-green-wash)"></span><span
                   class="method-name">Heat map</span> source shading</div>
@@ -2677,6 +2818,31 @@
             <textarea id="sum-text"
               placeholder="Paste a lecture excerpt, textbook paragraph, or article here..."></textarea>
             <div class="char-counter">0 chars</div>
+            <section class="attribution-picker" aria-labelledby="attribution-picker-title">
+              <div class="attribution-picker-head">
+                <h2 class="attribution-picker-title" id="attribution-picker-title">Choose an evidence model</h2>
+                <a class="attribution-picker-link" href="/finetuning">Compare benchmark results →</a>
+              </div>
+              <div class="attribution-options" role="radiogroup" aria-label="Text evidence model">
+                <label class="attribution-option is-selected" data-attribution-option>
+                  <input type="radio" name="attribution-model" value="pretrained_sst2" checked>
+                  <span class="attribution-option-copy">
+                    <span class="attribution-option-name">Pretrained SST-2</span>
+                    <span class="attribution-option-description">Original DistilBERT sentiment checkpoint; use as the before-training baseline.</span>
+                  </span>
+                  <span class="attribution-option-badge">Before</span>
+                </label>
+                <label class="attribution-option is-disabled" data-attribution-option>
+                  <input type="radio" name="attribution-model" value="finetuned_sst2" disabled>
+                  <span class="attribution-option-copy">
+                    <span class="attribution-option-name">Fine-tuned SST-2</span>
+                    <span class="attribution-option-description" data-finetuned-description>Trained to score evidence relevance for text Q&amp;A and summaries.</span>
+                  </span>
+                  <span class="attribution-option-badge">After</span>
+                </label>
+              </div>
+              <div class="attribution-hint" id="attribution-hint">The choice changes text explanations only—not generated summaries or answers. Select a model, then run Summarize or Q&amp;A to compare.</div>
+            </section>
             <button class="btn-primary" id="sum-btn" onclick="runSummarize()">
               <span class="btn-spinner"></span>
               <span class="btn-label">▶ Run Summarization + Explain</span>
@@ -2704,6 +2870,7 @@
 
           <div class="results" id="sum-results">
             <div class="results-heading"><span>✦</span> Summarization</div>
+            <div class="attribution-mode-label" id="sum-attribution-mode"></div>
             <div class="grid-3">
               <div class="card fade-in fade-in-1">
                 <div class="card-header"><span class="card-dot dot-summary"></span> SUMMARY OUTPUT</div>
@@ -2719,7 +2886,7 @@
               </div>
             </div>
             <div class="card full-width fade-in fade-in-4">
-              <div class="card-header"><span class="card-dot dot-tfidf"></span> SENTENCE ATTRIBUTION (TF-IDF)</div>
+              <div class="card-header"><span class="card-dot dot-tfidf"></span> SENTENCE EVIDENCE SCORES</div>
               <div class="sent-list" id="sum-sent"></div>
             </div>
             <div class="card full-width fade-in fade-in-5">
@@ -2748,12 +2915,14 @@
 
           <div class="results" id="qa-results">
             <div class="results-heading"><span>✦</span> Answer</div>
+            <div class="attribution-mode-label" id="qa-attribution-mode"></div>
             <!-- The answer is a statement now, not a two-word span, so it gets the
                  full width instead of a third of a row it would overflow. -->
             <div class="card fade-in fade-in-1">
               <div class="card-header">
                 <span class="card-dot dot-answer"></span> ANSWER
               </div>
+              <div class="confidence" id="qa-engine"></div>
               <div class="answer-text" id="qa-answer"></div>
               <div class="answer-detail" id="qa-answer-detail" hidden></div>
               <div class="confidence" id="qa-conf"></div>
@@ -3234,7 +3403,7 @@
         methods: [
           ["var(--marker-yellow-wash)", "LIME", "word weights"],
           ["var(--marker-pink-wash)", "SHAP", "token values"],
-          ["var(--marker-cyan-wash)", "TF‑IDF", "sentence rank"],
+          ["var(--marker-cyan-wash)", "Evidence model", "sentence rank"],
           ["var(--marker-green-wash)", "Heat map", "source shading"],
         ],
       },
@@ -4002,6 +4171,74 @@
 
 
 
+    const ATTRIBUTION_MODEL_KEY = "xai-attribution-model";
+    const attributionModelInputs = [
+      ...document.querySelectorAll('input[name="attribution-model"]')
+    ];
+    const selectedAttributionModel = () =>
+      attributionModelInputs.find(input => input.checked)?.value || "pretrained_sst2";
+
+    function attributionModelLabel(model) {
+      return {
+        pretrained_sst2: "Pretrained DistilBERT SST-2",
+        finetuned_sst2: "Fine-tuned DistilBERT evidence model",
+      }[model] || "Pretrained DistilBERT SST-2";
+    }
+
+    function showAttributionModel(containerId, model) {
+      const el = document.getElementById(containerId);
+      if (el) el.textContent = `Attribution model: ${attributionModelLabel(model)}`;
+    }
+
+    function updateAttributionPicker() {
+      attributionModelInputs.forEach(input => {
+        const option = input.closest("[data-attribution-option]");
+        option.classList.toggle("is-selected", input.checked);
+        option.classList.toggle("is-disabled", input.disabled);
+      });
+    }
+
+    attributionModelInputs.forEach(input => input.addEventListener("change", () => {
+      updateAttributionPicker();
+      try {
+        localStorage.setItem(ATTRIBUTION_MODEL_KEY, selectedAttributionModel());
+      } catch { }
+    }));
+
+    async function configureAttributionModels() {
+      const fineTunedInput = attributionModelInputs.find(
+        input => input.value === "finetuned_sst2"
+      );
+      const fineTunedDescription = document.querySelector("[data-finetuned-description]");
+      try {
+        const response = await fetch(`${API_BASE}/api/attribution-models`);
+        const data = await readJson(response, "Could not check attribution models.");
+        const fineTuned = data.models.find(model => model.id === "finetuned_sst2");
+        fineTunedInput.disabled = !fineTuned || !fineTuned.available;
+        fineTunedDescription.textContent = fineTunedInput.disabled
+          ? "Train the model first to enable this option."
+          : "Trained on SciFact evidence; compare against the original checkpoint.";
+      } catch (error) {
+        fineTunedInput.disabled = true;
+        fineTunedDescription.textContent = "Model availability could not be checked; the pretrained model remains available.";
+        console.error("Could not check attribution model availability:", error);
+      }
+      updateAttributionPicker();
+      try {
+        const saved = localStorage.getItem(ATTRIBUTION_MODEL_KEY);
+        const savedInput = attributionModelInputs.find(
+          input => input.value === saved && !input.disabled
+        );
+        if (savedInput) {
+          savedInput.checked = true;
+        }
+      } catch {
+      }
+      updateAttributionPicker();
+    }
+
+    configureAttributionModels();
+
     async function runSummarize() {
       const text = document.getElementById('sum-text').value.trim();
       if (!text) { showToast('Please enter some text.'); return; }
@@ -4020,13 +4257,18 @@
         const res = await fetch(`${API_BASE}/api/summarize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, job_id: prog.jobId })
+          body: JSON.stringify({
+            text,
+            job_id: prog.jobId,
+            attribution_model: selectedAttributionModel()
+          })
         });
         const data = await readJson(res, 'Summarization failed.');
 
         document.getElementById('sum-text').value = data.cleaned_text || text;
         updateCharCounter();
         document.getElementById('sum-output').textContent = data.summary;
+        showAttributionModel('sum-attribution-mode', data.attribution_model);
         renderLIME(data.lime, 'sum-lime');
         renderSHAP(data.shap, 'sum-shap');
         renderSentences(data.sentence_attribution, 'sum-sent');
@@ -4063,9 +4305,21 @@
         const res = await fetch(`${API_BASE}/api/qa`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, context, job_id: prog.jobId })
+          body: JSON.stringify({
+            question,
+            context,
+            job_id: prog.jobId,
+            attribution_model: selectedAttributionModel()
+          })
         });
         const data = await readJson(res, 'Question answering failed.');
+        showAttributionModel('qa-attribution-mode', data.attribution_model);
+        const answerEngines = {
+          gemini: 'Answer engine: Gemini',
+          local: 'Answer engine: local passage extraction (DistilBERT + sentence retrieval)'
+        };
+        document.getElementById('qa-engine').textContent =
+          answerEngines[data.engine] || 'Answer engine: unknown';
 
         document.getElementById('sum-text').value = data.cleaned_text || context;
         updateCharCounter();

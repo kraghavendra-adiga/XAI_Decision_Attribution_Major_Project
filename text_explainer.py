@@ -107,9 +107,12 @@ Return ONLY a valid JSON object, no markdown, no extra text:
 }}
 
 Rules:
-- The answer must be a complete, self-contained explanation of two to five
-  sentences, not a two-word extract. Define the term the question asks about,
-  then state what the passage says about it.
+- Start with a direct answer to the exact question. Do not merely paste a
+  paragraph sentence or list source sentences as the answer.
+- Give a concise, self-contained answer in one to three sentences. Explain the
+  relevant relationship in your own words when the question asks how or why.
+- Define a term only when the question asks for a definition; otherwise answer
+  the requested who, what, when, where, why, or how directly.
 - If the question asks for several things, cover all of them.
 - "text" must be copied verbatim from the passage. Never paraphrase inside it.
 - contribution values must add up to 1.0. Between 2 and 5 sources.

@@ -5,6 +5,7 @@ import difflib
 import os
 import re
 from io import BytesIO
+from pathlib import Path
 
 from PIL import Image
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
@@ -14,7 +15,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types as genai_types
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().with_name(".env"))
 
 # Single source of truth for the model name; retired ids fail with a 404 at
 # call time, so both the image and audio paths must stay in sync.
@@ -508,5 +509,4 @@ def unsupported_reply(noun: str, question: str, source_text: str) -> str:
     if topics:
         sentence += f" It is mainly about {_join_terms(topics)}."
     return sentence
-
 

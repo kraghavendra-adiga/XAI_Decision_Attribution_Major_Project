@@ -1,5 +1,6 @@
 # main.py
 import os
+import json
 from io import BytesIO
 from pathlib import Path
 
@@ -12,6 +13,11 @@ from fastapi.templating import Jinja2Templates
 from PIL import Image
 
 try:
+    from .evidence_model import (
+        attribution_model_label,
+        finetuned_model_available,
+        require_finetuned_model,
+    )
     from .schemas import SummarizeRequest, QARequest
     from .model_utils import summarize_text
     from .image_explainer import (
@@ -41,6 +47,11 @@ try:
     from .text_explainer import explain_text_qa, heat_from_sentence_scores
     from .utils import ServiceOverloaded
 except ImportError:  # pragma: no cover - fallback for direct script execution
+    from evidence_model import (
+        attribution_model_label,
+        finetuned_model_available,
+        require_finetuned_model,
+    )
     from schemas import SummarizeRequest, QARequest
     from model_utils import summarize_text
     from image_explainer import (
@@ -132,6 +143,47 @@ async def index(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
 
 
+@app.get("/finetuning", response_class=HTMLResponse)
+async def finetuning_dashboard(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="finetuning_dashboard.html"
+    )
+
+
+@app.get("/api/finetuning/results")
+async def finetuning_results():
+    results_path = _BASE_DIR / "finetuning_artifacts" / "evidence_alignment" / "results.json"
+    if not results_path.is_file():
+        return {
+            "status": "not_trained",
+            "message": "No benchmark results yet. Run the fine-tuning command below.",
+        }
+    try:
+        return JSONResponse(content=json.loads(results_path.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(
+            status_code=500, detail="Saved benchmark results could not be read."
+        ) from exc
+
+
+@app.get("/api/attribution-models")
+async def attribution_models():
+    return {
+        "models": [
+            {
+                "id": "pretrained_sst2",
+                "label": attribution_model_label("pretrained_sst2"),
+                "available": True,
+            },
+            {
+                "id": "finetuned_sst2",
+                "label": attribution_model_label("finetuned_sst2"),
+                "available": finetuned_model_available(),
+            },
+        ]
+    }
+
+
 @app.get("/api/progress/{job_id}")
 async def read_progress(job_id: str):
     """Where a running job has actually got to, for the browser's progress bar.
@@ -162,16 +214,25 @@ def _summarize_sync(req: SummarizeRequest) -> dict:
     # The summary is the reference the three panels explain: they report which
     # parts of the input this particular summary rests on.
     lime_exp = get_lime_explanation(
-        clean_text, summary, report=rep.sub("Weighing words (LIME)")
+        clean_text,
+        summary,
+        report=rep.sub("Weighing words (LIME)"),
+        model_type=req.attribution_model,
     )
     shap_exp = get_shap_explanation(
-        clean_text, summary, report=rep.sub("Weighing words (SHAP)")
+        clean_text,
+        summary,
+        report=rep.sub("Weighing words (SHAP)"),
+        model_type=req.attribution_model,
     )
     rep.stage("Ranking sentences")
-    sentence_attr = get_sentence_attribution(clean_text, summary)
+    sentence_attr = get_sentence_attribution(
+        clean_text, summary, model_type=req.attribution_model
+    )
     rep.done()
     return {
         "summary": summary,
+        "attribution_model": req.attribution_model,
         "cleaned_text": clean_text,
         "lime": lime_exp,
         "shap": shap_exp,
@@ -185,6 +246,11 @@ def _summarize_sync(req: SummarizeRequest) -> dict:
 
 @app.post("/api/summarize")
 async def summarize(req: SummarizeRequest):
+    if req.attribution_model == "finetuned_sst2":
+        try:
+            require_finetuned_model()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
     progress.start(req.job_id or "", "Cleaning text")
     try:
         return await run_in_threadpool(_summarize_sync, req)
@@ -219,6 +285,7 @@ def _qa_sync(req: QARequest) -> dict:
         rep.done()
         return {
             "answer": answer,
+            "attribution_model": req.attribution_model,
             "short_answer": "",
             "engine": result["engine"],
             "engine_note": result["engine_note"],
@@ -239,13 +306,21 @@ def _qa_sync(req: QARequest) -> dict:
     # question being answered *this* way.
     reference = f"{req.question} {answer}".strip()
     lime_exp = get_lime_explanation(
-        clean_context, reference, report=rep.sub("Weighing words (LIME)")
+        clean_context,
+        reference,
+        report=rep.sub("Weighing words (LIME)"),
+        model_type=req.attribution_model,
     )
     shap_exp = get_shap_explanation(
-        clean_context, reference, report=rep.sub("Weighing words (SHAP)")
+        clean_context,
+        reference,
+        report=rep.sub("Weighing words (SHAP)"),
+        model_type=req.attribution_model,
     )
     rep.stage("Ranking sentences")
-    sentence_attr = get_sentence_attribution(clean_context, reference)
+    sentence_attr = get_sentence_attribution(
+        clean_context, reference, model_type=req.attribution_model
+    )
     rep.done()
     return {
         "answer": answer,
@@ -257,7 +332,8 @@ def _qa_sync(req: QARequest) -> dict:
         "cleaned_text": clean_context,
         "sources": result["sources"],
         "unsupported": False,
-        "heatmap": result["heatmap"],
+        "heatmap": heat_from_sentence_scores(clean_context, sentence_attr),
+        "attribution_model": req.attribution_model,
         "lime": lime_exp,
         "shap": shap_exp,
         "sentence_attribution": sentence_attr,
@@ -266,6 +342,11 @@ def _qa_sync(req: QARequest) -> dict:
 
 @app.post("/api/qa")
 async def qa(req: QARequest):
+    if req.attribution_model == "finetuned_sst2":
+        try:
+            require_finetuned_model()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
     progress.start(req.job_id or "", "Answering question")
     try:
         return await run_in_threadpool(_qa_sync, req)

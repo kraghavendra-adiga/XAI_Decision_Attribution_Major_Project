@@ -18,6 +18,7 @@ public/
 *.pt
 *.safetensors
 models/
+finetuning_artifacts/
 
 # OS
 .DS_Store

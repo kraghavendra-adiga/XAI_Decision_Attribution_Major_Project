@@ -212,38 +212,55 @@ def answer_question(question: str, context: str):
             clean_context,
             return_tensors="pt",
             truncation="only_second",
+            stride=128,
             max_length=384,
+            padding=True,
+            return_overflowing_tokens=True,
         )
 
+        model_inputs = {
+            key: value
+            for key, value in inputs.items()
+            if key != "overflow_to_sample_mapping"
+        }
         with torch.no_grad():
-            outputs = qa_model(**inputs)
-
-        sequence_ids = inputs.sequence_ids(0)
-        context_mask = torch.tensor(
-            [token_type == 1 for token_type in sequence_ids],
-            dtype=torch.bool,
-            device=outputs.start_logits.device,
-        )
-        start_logits = outputs.start_logits[0].masked_fill(~context_mask, -1e9)
-        end_logits = outputs.end_logits[0].masked_fill(~context_mask, -1e9)
-        start_probs = torch.softmax(start_logits, dim=-1)
-        end_probs = torch.softmax(end_logits, dim=-1)
+            outputs = qa_model(**model_inputs)
 
         best_score = -1.0
-        start_idx = end_idx = int(torch.argmax(start_probs))
+        best_window = 0
+        start_idx = end_idx = 0
         max_answer_tokens = 30
-        for start in torch.nonzero(context_mask, as_tuple=False).flatten().tolist():
-            max_end = min(start + max_answer_tokens, len(sequence_ids))
-            for end in range(start, max_end):
-                if not context_mask[end]:
-                    break
-                score = float(start_probs[start] * end_probs[end])
-                if score > best_score:
-                    best_score = score
-                    start_idx = start
-                    end_idx = end
+        for window_idx in range(outputs.start_logits.shape[0]):
+            sequence_ids = inputs.sequence_ids(window_idx)
+            context_mask = torch.tensor(
+                [token_type == 1 for token_type in sequence_ids],
+                dtype=torch.bool,
+                device=outputs.start_logits.device,
+            )
+            start_logits = outputs.start_logits[window_idx].masked_fill(
+                ~context_mask, -1e9
+            )
+            end_logits = outputs.end_logits[window_idx].masked_fill(
+                ~context_mask, -1e9
+            )
+            start_probs = torch.softmax(start_logits, dim=-1)
+            end_probs = torch.softmax(end_logits, dim=-1)
 
-        answer_ids = inputs["input_ids"][0][start_idx : end_idx + 1]
+            for start in torch.nonzero(
+                context_mask, as_tuple=False
+            ).flatten().tolist():
+                max_end = min(start + max_answer_tokens, len(sequence_ids))
+                for end in range(start, max_end):
+                    if not context_mask[end]:
+                        break
+                    score = float(start_probs[start] * end_probs[end])
+                    if score > best_score:
+                        best_score = score
+                        best_window = window_idx
+                        start_idx = start
+                        end_idx = end
+
+        answer_ids = inputs["input_ids"][best_window][start_idx : end_idx + 1]
         answer = qa_tokenizer.decode(answer_ids, skip_special_tokens=True).strip()
         answer = answer.replace(" ##", "").lstrip("#")
         answer = answer.replace(" - ", "-")

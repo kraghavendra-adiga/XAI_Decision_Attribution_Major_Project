@@ -26,12 +26,14 @@ try:
         clean_educational_text,
         split_sentences,
     )
+    from .evidence_model import score_evidence_pairs
 except ImportError:
     from text_cleaning import (
         clean_attribution_feature,
         clean_educational_text,
         split_sentences,
     )
+    from evidence_model import score_evidence_pairs
 
 _DISPLAY_STOPWORDS = ENGLISH_STOP_WORDS | {
     "ai",
@@ -69,14 +71,22 @@ def _is_display_feature(text: str) -> bool:
     return bool(feature) and not feature.isdigit() and feature not in _DISPLAY_STOPWORDS
 
 
-def _alignment_scorer(text: str, reference: str):
+def _alignment_scorer(text: str, reference: str, model_type: str = "tfidf"):
     """Score how strongly a candidate input supports `reference`.
 
-    The vectorizer is fit once, on the original text and the reference only, and
-    never refit. LIME and SHAP both feed thousands of word-masked variants
-    through the returned function, and refitting per batch would move the
-    vocabulary underneath them and invalidate the explanation.
+    The selected scorer stays fixed while LIME and SHAP evaluate thousands of
+    masked variants. TF-IDF fits one vocabulary on the original pair; classifier
+    modes score each candidate/reference pair with fixed model weights.
     """
+    if model_type in {"pretrained_sst2", "finetuned_sst2"}:
+        return lambda candidates: score_evidence_pairs(
+            [str(candidate) for candidate in candidates],
+            reference,
+            model_type=model_type,
+        )
+    if model_type != "tfidf":
+        raise ValueError(f"Unknown attribution model: {model_type}")
+
     vec = TfidfVectorizer(stop_words="english", sublinear_tf=True)
     try:
         vec.fit([reference, text])
@@ -115,7 +125,11 @@ def _aggregate_by_word(pairs, limit=60):
 
 
 def get_lime_explanation(
-    text: str, reference: str = "", num_features: int = 10, report=None
+    text: str,
+    reference: str = "",
+    num_features: int = 10,
+    report=None,
+    model_type: str = "tfidf",
 ):
     """Word-level LIME weights for the input's support of `reference`.
 
@@ -129,7 +143,7 @@ def get_lime_explanation(
         if not clean_text:
             return []
 
-        score = _alignment_scorer(clean_text, clean_reference)
+        score = _alignment_scorer(clean_text, clean_reference, model_type)
         if score is None:
             return []
 
@@ -167,10 +181,18 @@ def get_lime_explanation(
             report(1.0)
         return [{"word": word, "weight": weight} for word, weight in rows]
     except Exception as e:
+        if model_type != "tfidf":
+            raise
         return [{"word": f"[LIME error: {e}]", "weight": 0.0}]
 
 
-def get_shap_explanation(text: str, reference: str = "", limit: int = 40, report=None):
+def get_shap_explanation(
+    text: str,
+    reference: str = "",
+    limit: int = 40,
+    report=None,
+    model_type: str = "tfidf",
+):
     """Per-word SHAP values for the input's support of `reference`.
 
     `report(fraction)` tracks evaluations against `_SHAP_MAX_EVALS`, which is
@@ -183,7 +205,7 @@ def get_shap_explanation(text: str, reference: str = "", limit: int = 40, report
         if not clean_text:
             return []
 
-        score = _alignment_scorer(clean_text, clean_reference)
+        score = _alignment_scorer(clean_text, clean_reference, model_type)
         if score is None:
             return []
 
@@ -211,31 +233,38 @@ def get_shap_explanation(text: str, reference: str = "", limit: int = 40, report
             report(1.0)
         return [{"token": token, "value": value} for token, value in rows]
     except Exception as e:
+        if model_type != "tfidf":
+            raise
         return [{"token": f"[SHAP error: {e}]", "value": 0.0}]
 
 
-def get_sentence_attribution(text: str, reference: str = ""):
+def get_sentence_attribution(
+    text: str, reference: str = "", model_type: str = "tfidf"
+):
     """Rank input sentences by how much of `reference` they account for.
 
-    Scores are raw cosine similarities, not values renormalised so the best
-    sentence reads 100%. The previous version summed each sentence's TF-IDF row,
-    which grows with sentence length and never looked at the output at all, so
-    the longest run of text always won regardless of what the summary said.
+    TF-IDF scores are raw cosine similarities, not values renormalised so the
+    best sentence reads 100%. Classifier modes return the model's evidence
+    probability for each sentence/reference pair.
     """
     clean_text = clean_educational_text(text)
     sentences = split_sentences(clean_text)
     if not sentences:
         return []
-    if len(sentences) < 2:
+    if len(sentences) < 2 and (model_type == "tfidf" or not reference.strip()):
         return [{"sentence": sentences[0], "score": 1.0}]
 
     try:
         clean_reference = clean_educational_text(reference)
         if clean_reference:
-            vec = TfidfVectorizer(stop_words="english", sublinear_tf=True)
-            matrix = vec.fit_transform([clean_reference] + sentences)
-            scores = cosine_similarity(matrix[1:], matrix[0]).ravel()
-            scores = np.clip(scores, 0.0, 1.0)
+            if model_type == "tfidf":
+                vec = TfidfVectorizer(stop_words="english", sublinear_tf=True)
+                matrix = vec.fit_transform([clean_reference] + sentences)
+                scores = cosine_similarity(matrix[1:], matrix[0]).ravel()
+                scores = np.clip(scores, 0.0, 1.0)
+            else:
+                score = _alignment_scorer(clean_text, clean_reference, model_type)
+                scores = score(sentences)
         else:
             # No output to attribute to: fall back to per-sentence TF-IDF mass,
             # normalised so the ranking is still readable.
@@ -252,4 +281,6 @@ def get_sentence_attribution(text: str, reference: str = ""):
         result.sort(key=lambda x: x["score"], reverse=True)
         return result
     except Exception as e:
+        if model_type != "tfidf":
+            raise
         return [{"sentence": f"[Attribution error: {e}]", "score": 0.0}]
