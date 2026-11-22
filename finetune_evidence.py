@@ -105,9 +105,9 @@ def run_experiment(
     *,
     archive_path: Path,
     output_dir: Path,
-    epochs: int = 3,
+    epochs: int = 1,
     batch_size: int = 8,
-    learning_rate: float = 2e-5,
+    learning_rate: float = 1e-5,
     max_train_pairs: int | None = None,
     max_negatives_per_claim: int = 4,
     device_name: str = "auto",
@@ -205,13 +205,26 @@ def run_experiment(
     model.save_pretrained(model_dir)
     tokenizer.save_pretrained(model_dir)
 
-    samples = []
+    categorized_samples = {
+        "corrected": [],
+        "unchanged": [],
+        "regressed": [],
+        "both_incorrect": [],
+    }
     for pair, tfidf_score, before, after in zip(
         dev_pairs, dev_tfidf_scores, pretrained_scores, finetuned_scores
     ):
-        if len(samples) >= 40:
-            break
-        samples.append({
+        before_prediction = int(before >= 0.5)
+        after_prediction = int(after >= 0.5)
+        if before_prediction != pair.label and after_prediction == pair.label:
+            category = "corrected"
+        elif before_prediction == pair.label and after_prediction != pair.label:
+            category = "regressed"
+        elif before_prediction == pair.label and after_prediction == pair.label:
+            category = "unchanged"
+        else:
+            category = "both_incorrect"
+        categorized_samples[category].append({
             "claim": pair.claim,
             "sentence": pair.sentence,
             "label": "relevant evidence" if pair.label else "not annotated as evidence",
@@ -220,6 +233,9 @@ def run_experiment(
             "pretrained_score": round(float(before), 4),
             "finetuned_score": round(float(after), 4),
         })
+    samples = []
+    for category in ("corrected", "unchanged", "regressed", "both_incorrect"):
+        samples.extend(categorized_samples[category][:10])
 
     results = {
         "status": "complete",
@@ -291,9 +307,9 @@ def main():
         help="Local SciFact archive path (downloaded automatically if absent).",
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=16)
-    parser.add_argument("--learning-rate", type=float, default=2e-5)
+    parser.add_argument("--learning-rate", type=float, default=1e-5)
     parser.add_argument("--max-train-pairs", type=int)
     parser.add_argument("--max-negatives-per-claim", type=int, default=4)
     parser.add_argument("--device", default="auto", help="auto, cpu, mps, or cuda")
